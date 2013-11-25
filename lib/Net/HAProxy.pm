@@ -216,7 +216,7 @@ sub info {
 
 =head2 set_weight
 
-Arguments: proxy name (pxname), service name (svname), integer (0-100)
+Arguments: proxy name (pxname), service name (svname), integer (0 - 256 inclusive) for absolute weight, or a relative weight represented as a %
 
 Dies on invalid proxy / service name / weighting
 
@@ -226,14 +226,10 @@ Dies on invalid proxy / service name / weighting
 sub set_weight {
     my ($self, $pxname, $svname, $weight) = @_;
 
-    die "Invalid weight must be between 0 and 100"
-        unless $weight > 0 and $weight <= 100;
-
-    my $response = $self->_send_command("enable server $pxname/$svname $weight\%");
+    my $response = $self->_send_command("set weight $pxname/$svname $weight");
     chomp $response;
     die $response if length $response;
 }
-
 
 =head2 enable_server
 
