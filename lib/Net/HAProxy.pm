@@ -53,6 +53,18 @@ has timeout => (is => 'ro', isa => 'Int', default => 1);
         print "Couldn't set weighting: $_\n";
     };
 
+    try {
+        my $weight = $haproxy->get_weight('pxname', 'svname');
+    } catch {
+        print "Couldn't get weighting: $_\n";
+    };
+
+    try {
+        my ($weight, $initial) = $haproxy->get_weight('pxname', 'svname');
+    } catch {
+        print "Couldn't get weighting: $_\n";
+    };
+
 =cut
 
 sub _send_command {
@@ -229,6 +241,31 @@ sub set_weight {
     my $response = $self->_send_command("set weight $pxname/$svname $weight");
     chomp $response;
     die $response if length $response;
+}
+
+=head2 get_weight
+
+Arguments: proxy name (pxname), service name (svname)
+
+Returns: weight (integer [0-256]), [ initial (integer [0-256) ] - in list context ]
+
+Dies on invalid proxy / service name
+
+
+=cut
+
+sub get_weight {
+    my ($self, $pxname, $svname) = @_;
+
+    my $response = $self->_send_command("get weight $pxname/$svname");
+    chomp $response;
+    my ($weight, $initial) = $response =~ m{^(\d+)\s+\(initial (\d+)\)};
+    defined $weight
+        or die $response;
+
+    return wantarray
+            ? ($weight, $initial)
+            : $weight;
 }
 
 =head2 enable_server
