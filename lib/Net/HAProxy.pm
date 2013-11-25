@@ -65,6 +65,13 @@ has timeout => (is => 'ro', isa => 'Int', default => 1);
         print "Couldn't get weighting: $_\n";
     };
 
+    try {
+        $haproxy->reset_weight('pxname', 'svname');
+    } catch {
+        print "Couldn't reset weighting: $_\n";
+    };
+
+
 =cut
 
 sub _send_command {
@@ -266,6 +273,25 @@ sub get_weight {
     return wantarray
             ? ($weight, $initial)
             : $weight;
+}
+
+
+=head2 reset_weight
+
+reset weight to the initial weighting - a NOOP if the current weight and the initial weight are the same.
+
+Arguments: proxy name (pxname), service name (svname)
+
+Dies on invalid proxy /service name
+
+=cut
+
+sub reset_weight {
+    my ($self, $pxname, $svname) = @_;
+
+    my ($weight, $initial) = $self->get_weight($pxname, $svname);
+    $self->set_weight($pxname, $svname, $initial)
+            if $weight != $initial;
 }
 
 =head2 enable_server
