@@ -182,9 +182,13 @@ sub stats {
     my $csv = Text::CSV->new;
     $csv->parse($fields);
     $csv->column_names(grep { length } $csv->fields);
-
-    my $res = $csv->getline_hr_all($sh); pop @$res;
-    return $res;
+    my @res = ();
+    while (my $ref = $csv->getline_hr($sh)) {
+        push @res, $ref;
+    }
+    $csv->eof or die $csv->error_diag;
+    pop @res;
+    return \@res;
 }
 
 
